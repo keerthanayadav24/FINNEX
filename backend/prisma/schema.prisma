@@ -1,0 +1,206 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ------------------------------------
+// ENUMS
+// ------------------------------------
+
+enum AccountType {
+  SAVINGS
+  CHECKING
+  CASH
+  CREDIT_CARD
+  INVESTMENT
+  LOAN
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+  TRANSFER
+}
+
+enum TransactionSource {
+  MANUAL
+  CSV
+  BANK
+  CARD
+  STATEMENT
+  API
+}
+
+enum CategoryType {
+  INCOME
+  EXPENSE
+  BOTH
+}
+
+enum BudgetPeriod {
+  MONTHLY
+  YEARLY
+}
+
+enum NotificationType {
+  INFO
+  WARNING
+  ALERT
+}
+
+// ------------------------------------
+// MODELS
+// ------------------------------------
+
+model User {
+  id             String         @id @default(uuid())
+  authProviderId String         @unique
+  email          String         @unique
+  name           String?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  accounts       Account[]
+  categories     Category[]
+  transactions   Transaction[]
+  budgets        Budget[]
+  goals          Goal[]
+  notifications  Notification[]
+
+  @@index([authProviderId])
+}
+
+model Account {
+  id             String         @id @default(uuid())
+  userId         String
+  name           String
+  type           AccountType
+  currency       String         @default("INR")
+  currentBalance Decimal        @db.Decimal(14, 2)
+  interestRate   Decimal?       @db.Decimal(5, 2)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions   Transaction[]  @relation("PrimaryAccount")
+  transfersFrom  Transaction[]  @relation("TransferAccount")
+
+  @@index([userId])
+}
+
+model Category {
+  id             String         @id @default(uuid())
+  userId         String?        // Null for system/default categories
+  name           String
+  icon           String?
+  isSystem       Boolean        @default(false)
+  type           CategoryType   @default(EXPENSE)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  user           User?          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions   Transaction[]
+  budgets        Budget[]
+
+  @@index([userId])
+}
+
+model Transaction {
+  id                String            @id @default(uuid())
+  userId            String
+  accountId         String
+  transferAccountId String?           // Optional link to destination/source account for transfers
+  amount            Decimal           @db.Decimal(14, 2)
+  type              TransactionType
+  categoryId        String?
+  merchant          String?
+  date              DateTime
+  source            TransactionSource @default(MANUAL)
+  description       String?
+  tags              String[]          @default([])
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  user              User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  account           Account           @relation("PrimaryAccount", fields: [accountId], references: [id], onDelete: Cascade)
+  transferAccount   Account?          @relation("TransferAccount", fields: [transferAccountId], references: [id], onDelete: SetNull)
+  category          Category?         @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([accountId])
+  @@index([categoryId])
+  @@index([date])
+  @@index([type])
+}
+
+model Budget {
+  id             String         @id @default(uuid())
+  userId         String
+  categoryId     String?
+  name           String
+  amount         Decimal        @db.Decimal(14, 2)
+  period         BudgetPeriod   @default(MONTHLY)
+  startDate      DateTime
+  endDate        DateTime?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category       Category?      @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([categoryId])
+}
+
+model Goal {
+  id             String             @id @default(uuid())
+  userId         String
+  name           String
+  type           String?            @default("CUSTOM")
+  targetAmount   Decimal            @db.Decimal(14, 2)
+  currentAmount  Decimal            @default(0) @db.Decimal(14, 2)
+  targetDate     DateTime?
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  user           User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contributions  GoalContribution[]
+
+  @@index([userId])
+}
+
+model GoalContribution {
+  id             String             @id @default(uuid())
+  goalId         String
+  amount         Decimal            @db.Decimal(14, 2)
+  date           DateTime           @default(now())
+  note           String?
+  isInitial      Boolean            @default(false)
+  createdAt      DateTime           @default(now())
+
+  goal           Goal               @relation(fields: [goalId], references: [id], onDelete: Cascade)
+
+  @@index([goalId])
+  @@index([date])
+  @@index([goalId, date])
+}
+
+model Notification {
+  id             String           @id @default(uuid())
+  userId         String
+  title          String
+  message        String
+  type           NotificationType @default(INFO)
+  isRead         Boolean          @default(false)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([isRead])
+}

@@ -1,0 +1,27 @@
+{
+  "name": "finnex",
+  "version": "0.1.0",
+  "private": true,
+  "description": "FINNEX - Personal & Business Finance Management System",
+  "scripts": {
+    "dev:backend": "npm --prefix backend run dev",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "build:backend": "npm --prefix backend run build",
+    "build:frontend": "npm --prefix frontend run build",
+    "prisma:generate": "npm --prefix backend run prisma:generate",
+    "prisma:migrate": "npm --prefix backend run prisma:migrate",
+    "prisma:seed": "npm --prefix backend run prisma:seed",
+    "prisma:studio": "npm --prefix backend run prisma:studio"
+  },
+  "keywords": [
+    "finance",
+    "money-management",
+    "prisma",
+    "postgresql",
+    "express",
+    "react",
+    "typescript"
+  ],
+  "author": "FINNEX Team",
+  "license": "ISC"
+}
