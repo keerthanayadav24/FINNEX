@@ -8,18 +8,18 @@ interface AuthPageProps {
 
 export const AuthPage: React.FC<AuthPageProps> = ({ onAuthSuccess }) => {
   const [mode, setMode] = useState<'signin' | 'signup'>('signin');
-  const [email, setEmail] = useState('rohan@finnex.app');
-  const [password, setPassword] = useState('••••••••••••');
-  const [name, setName] = useState('Rohan');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleAuth = (targetEmail: string) => {
     setLoading(true);
     let resolvedId = targetEmail.trim().toLowerCase();
 
-    // Map rohan@finnex.app or demo credentials to Rohan's existing PostgreSQL user record ID
-    if (resolvedId === 'rohan@finnex.app' || resolvedId.includes('rohan') || resolvedId.includes('demo')) {
-      resolvedId = 'dev_user_demo_123';
+    // Map exact rohan@finnex.app or dev_user_demo_123 identity to Rohan's demo account
+    if (resolvedId === 'rohan@finnex.app' || resolvedId === 'dev_user_demo_123') {
+      resolvedId = 'rohan@finnex.app';
     }
 
     setDevUserId(resolvedId);
@@ -60,13 +60,13 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onAuthSuccess }) => {
           </p>
         </div>
 
-        {/* Quick Demo Sign In Banner }
+        {/* Quick Demo Sign In Banner */}
         <div className="p-4 rounded-2xl bg-gradient-to-r from-cyan-950/60 to-blue-950/60 border border-cyan-500/30 flex items-center justify-between gap-3 shadow-lg">
           <div className="space-y-0.5">
             <div className="flex items-center gap-1.5 text-xs font-bold text-cyan-300">
-              <CheckCircle2 className="w-4 h-4 text-cyan-400" /> Rohan Demo Account
+              <CheckCircle2 className="w-4 h-4 text-cyan-400" /> Demo Rohan Account
             </div>
-            <p className="text-[11px] text-slate-400">Pre-loaded with financial data &amp; accounts</p>
+            <p className="text-[11px] text-slate-400">Pre-loaded with sample transactions &amp; accounts</p>
           </div>
           <button
             type="button"
@@ -76,7 +76,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onAuthSuccess }) => {
           >
             Launch Demo <ArrowRight className="w-3.5 h-3.5" />
           </button>
-        </div> */}
+        </div>
 
         {/* Auth Mode Toggle */}
         <div className="p-1 rounded-xl bg-slate-900 border border-slate-800 grid grid-cols-2 gap-1 text-xs font-semibold">
@@ -111,7 +111,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onAuthSuccess }) => {
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Rohan"
+                  placeholder="e.g. Alice Smith"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   className="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-cyan-500 text-xs"
@@ -132,10 +132,12 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onAuthSuccess }) => {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">Password</label>
+              <div className="flex justify-between items-center mb-1">
+                <label className="block text-xs font-semibold text-slate-300 uppercase">Password</label>
+                <span className="text-[10px] text-slate-500 font-medium">Optional (Identity Mode)</span>
+              </div>
               <input
                 type="password"
-                required
                 placeholder="••••••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}

@@ -64,7 +64,8 @@ export const requireAuth = async (req: Request, res: Response, next: NextFunctio
     if (!internalUser) {
       const isEmail = authIdentity.includes('@');
       const email = isEmail ? authIdentity.toLowerCase() : `${authIdentity}@user.finnex.app`;
-      const name = isEmail ? authIdentity.split('@')[0] : 'FINNEX User';
+      const rawName = isEmail ? authIdentity.split('@')[0] : authIdentity;
+      const name = rawName ? rawName.charAt(0).toUpperCase() + rawName.slice(1) : 'FINNEX User';
 
       internalUser = await prisma.user.create({
         data: {

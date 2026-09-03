@@ -24,16 +24,29 @@ export interface ApiResponse<T = any> {
   };
 }
 
-let activeUserId: string | null = localStorage.getItem('finnex_user_id') || localStorage.getItem('finnex_dev_user_id');
+const STORAGE_KEY = 'finnex_user_id';
+const LEGACY_STORAGE_KEY = 'finnex_dev_user_id';
+
+let activeUserId: string | null = localStorage.getItem(STORAGE_KEY);
+
+// Migrate or clear legacy dev key safely
+if (!activeUserId) {
+  const legacyVal = localStorage.getItem(LEGACY_STORAGE_KEY);
+  if (legacyVal && legacyVal !== 'dev_user_demo_123') {
+    activeUserId = legacyVal;
+    localStorage.setItem(STORAGE_KEY, legacyVal);
+  }
+  localStorage.removeItem(LEGACY_STORAGE_KEY);
+}
 
 export const setDevUserId = (id: string | null) => {
   activeUserId = id;
   if (id) {
-    localStorage.setItem('finnex_user_id', id);
-    localStorage.setItem('finnex_dev_user_id', id);
+    localStorage.setItem(STORAGE_KEY, id);
+    localStorage.removeItem(LEGACY_STORAGE_KEY);
   } else {
-    localStorage.removeItem('finnex_user_id');
-    localStorage.removeItem('finnex_dev_user_id');
+    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(LEGACY_STORAGE_KEY);
   }
 };
 
