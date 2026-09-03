@@ -1,6 +1,19 @@
-import { PrismaClient, AccountType, TransactionType, TransactionSource, CategoryType, BudgetPeriod, NotificationType } from '@prisma/client';
+import { PrismaClient, User, AccountType, TransactionType, TransactionSource, CategoryType, BudgetPeriod, NotificationType } from '@prisma/client';
 
 const prisma = new PrismaClient();
+
+async function countUserRelatedRecords(userId: string): Promise<number> {
+  const [accs, cats, txs, bdgs, gls, contribs, notifs] = await Promise.all([
+    prisma.account.count({ where: { userId } }),
+    prisma.category.count({ where: { userId } }),
+    prisma.transaction.count({ where: { userId } }),
+    prisma.budget.count({ where: { userId } }),
+    prisma.goal.count({ where: { userId } }),
+    prisma.goalContribution.count({ where: { goal: { userId } } }),
+    prisma.notification.count({ where: { userId } }),
+  ]);
+  return accs + cats + txs + bdgs + gls + contribs + notifs;
+}
 
 async function main() {
   console.log('🌱 Starting FINNEX Indian INR database seeding...');
@@ -36,18 +49,35 @@ async function main() {
   console.log(`✅ System default categories seeded (${Object.keys(categoriesMap).length} categories)`);
 
   // 2. Rohan (Primary User Account)
-  let userA = await prisma.user.findFirst({
-    where: {
-      OR: [
-        { authProviderId: 'dev_user_demo_123' },
-        { email: 'rohan@finnex.app' },
-      ],
-    },
+  let userA: User | null = null;
+
+  const emailUser = await prisma.user.findFirst({
+    where: { email: 'rohan@finnex.app' },
   });
 
-  if (userA) {
+  const staleUser = await prisma.user.findFirst({
+    where: { authProviderId: 'dev_user_demo_123' },
+  });
+
+  // Handle State 3: Both exist as separate rows (e.g. Render prod after auto-provisioning)
+  if (emailUser && staleUser && emailUser.id !== staleUser.id) {
+    const staleRelatedCount = await countUserRelatedRecords(staleUser.id);
+    if (staleRelatedCount === 0) {
+      await prisma.user.delete({ where: { id: staleUser.id } });
+      console.log(`🧹 Cleaned up stale unseeded user: ${staleUser.id}`);
+    } else {
+      await prisma.user.update({
+        where: { id: staleUser.id },
+        data: { authProviderId: `dev_user_demo_123_stale_${staleUser.id.substring(0, 8)}` },
+      });
+    }
+  }
+
+  const targetUser: User | null = emailUser || staleUser;
+
+  if (targetUser) {
     userA = await prisma.user.update({
-      where: { id: userA.id },
+      where: { id: targetUser.id },
       data: {
         name: 'Rohan',
         email: 'rohan@finnex.app',
