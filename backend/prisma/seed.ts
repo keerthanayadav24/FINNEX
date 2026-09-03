@@ -36,27 +36,63 @@ async function main() {
   console.log(`✅ System default categories seeded (${Object.keys(categoriesMap).length} categories)`);
 
   // 2. Rohan (Primary User Account)
-  const userA = await prisma.user.upsert({
-    where: { authProviderId: 'dev_user_demo_123' },
-    update: { name: 'Rohan', email: 'rohan@finnex.app' },
-    create: {
-      authProviderId: 'dev_user_demo_123',
-      email: 'rohan@finnex.app',
-      name: 'Rohan',
+  let userA = await prisma.user.findFirst({
+    where: {
+      OR: [
+        { authProviderId: 'dev_user_demo_123' },
+        { email: 'rohan@finnex.app' },
+      ],
     },
   });
-  console.log(`✅ User A created: ${userA.email} (${userA.id})`);
+
+  if (userA) {
+    userA = await prisma.user.update({
+      where: { id: userA.id },
+      data: {
+        name: 'Rohan',
+        email: 'rohan@finnex.app',
+        authProviderId: 'dev_user_demo_123',
+      },
+    });
+  } else {
+    userA = await prisma.user.create({
+      data: {
+        authProviderId: 'dev_user_demo_123',
+        email: 'rohan@finnex.app',
+        name: 'Rohan',
+      },
+    });
+  }
+  console.log(`✅ User A created/updated: ${userA.email} (${userA.id})`);
 
   // 3. Demo User B (For cross-user isolation verification)
-  const userB = await prisma.user.upsert({
-    where: { authProviderId: 'dev_user_test_456' },
-    update: { name: 'Test User B', email: 'user2@finnex.app' },
-    create: {
-      authProviderId: 'dev_user_test_456',
-      email: 'user2@finnex.app',
-      name: 'Test User B',
+  let userB = await prisma.user.findFirst({
+    where: {
+      OR: [
+        { authProviderId: 'dev_user_test_456' },
+        { email: 'user2@finnex.app' },
+      ],
     },
   });
+
+  if (userB) {
+    userB = await prisma.user.update({
+      where: { id: userB.id },
+      data: {
+        name: 'Test User B',
+        email: 'user2@finnex.app',
+        authProviderId: 'dev_user_test_456',
+      },
+    });
+  } else {
+    userB = await prisma.user.create({
+      data: {
+        authProviderId: 'dev_user_test_456',
+        email: 'user2@finnex.app',
+        name: 'Test User B',
+      },
+    });
+  }
 
   // 4. User A Financial Accounts (Indian Rupee INR)
   await prisma.account.deleteMany({ where: { userId: userA.id } });
