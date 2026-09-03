@@ -26,6 +26,10 @@ logs/
 **/logs/
 scratch/
 
+# Java Build Outputs
+java/bin/
+*.class
+
 # IDE & Operating System Files
 .DS_Store
 Thumbs.db

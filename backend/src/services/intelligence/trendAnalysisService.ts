@@ -86,6 +86,7 @@ export class TrendAnalysisService {
       previousCategoryMap.set(catId, catEntry);
     });
 
+    const totalChangeAmount = Math.round((currentTotal - previousTotal) * 100) / 100;
     let totalChangePercentage: number | null = null;
 
     // Do NOT treat "no transactions yet this month" as a genuine 100% spending reduction

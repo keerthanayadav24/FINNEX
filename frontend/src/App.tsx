@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useAuth } from '@clerk/clerk-react';
 import { AppLayout } from './layouts/AppLayout';
 import { DashboardPage } from './pages/DashboardPage';
 import { InsightsPage } from './pages/InsightsPage';
@@ -15,7 +14,7 @@ import { NotificationsPage } from './pages/NotificationsPage';
 import { SettingsPage } from './pages/SettingsPage';
 
 import { AuthPage } from './pages/AuthPage';
-import { getDevUserId, setDevUserId, setClerkToken } from './services/api';
+import { getDevUserId, setDevUserId } from './services/api';
 import { userService } from './services/userService';
 import { accountService } from './services/accountService';
 import { transactionService } from './services/transactionService';
@@ -39,29 +38,12 @@ export function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const clerkKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
-
-  let clerkAuth: any = null;
-  try {
-    if (clerkKey) {
-      clerkAuth = useAuth();
-    }
-  } catch (err) {
-    clerkAuth = null;
-  }
-
-  const isClerkActive = Boolean(clerkKey && clerkAuth);
-  const isAuthenticated = isClerkActive ? Boolean(clerkAuth?.isSignedIn) : Boolean(getDevUserId());
+  const isAuthenticated = Boolean(getDevUserId());
 
   const loadData = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      if (isClerkActive && clerkAuth?.getToken) {
-        const token = await clerkAuth.getToken();
-        setClerkToken(token);
-      }
-
       const [u, accs, txs, cats, bdgs, gls, notifs] = await Promise.all([
         userService.getMe(),
         accountService.getAccounts(),
@@ -85,7 +67,7 @@ export function App() {
     } finally {
       setLoading(false);
     }
-  }, [isClerkActive, clerkAuth]);
+  }, []);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -96,15 +78,15 @@ export function App() {
     }
   }, [isAuthenticated, loadData]);
 
-  const handleSignOut = async () => {
-    if (isClerkActive && clerkAuth?.signOut) {
-      await clerkAuth.signOut();
-    }
-    setClerkToken(null);
+  const handleSignOut = () => {
     setDevUserId(null);
     setUser(null);
     setAccounts([]);
     setTransactions([]);
+    setCategories([]);
+    setBudgets([]);
+    setGoals([]);
+    setNotifications([]);
   };
 
   if (!isAuthenticated) {

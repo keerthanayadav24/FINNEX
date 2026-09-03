@@ -10,7 +10,6 @@ const envSchema = z
     DATABASE_URL: z.string().url('DATABASE_URL must be a valid connection string URL.'),
     PORT: z.string().default('5000').transform((val) => parseInt(val, 10)),
     NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
-    CLERK_SECRET_KEY: z.string().optional().default(''),
     DEV_AUTH_ENABLED: z
       .string()
       .optional()

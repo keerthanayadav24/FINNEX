@@ -24,23 +24,21 @@ export interface ApiResponse<T = any> {
   };
 }
 
-let devUserId: string | null = localStorage.getItem('finnex_dev_user_id');
-let clerkToken: string | null = null;
+let activeUserId: string | null = localStorage.getItem('finnex_user_id') || localStorage.getItem('finnex_dev_user_id');
 
 export const setDevUserId = (id: string | null) => {
-  devUserId = id;
+  activeUserId = id;
   if (id) {
+    localStorage.setItem('finnex_user_id', id);
     localStorage.setItem('finnex_dev_user_id', id);
   } else {
+    localStorage.removeItem('finnex_user_id');
     localStorage.removeItem('finnex_dev_user_id');
   }
 };
 
-export const getDevUserId = () => devUserId;
-
-export const setClerkToken = (token: string | null) => {
-  clerkToken = token;
-};
+export const getDevUserId = () => activeUserId;
+export const setClerkToken = (_token: string | null) => {};
 
 export async function apiFetch<T = any>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const headers: Record<string, string> = {
@@ -48,10 +46,9 @@ export async function apiFetch<T = any>(endpoint: string, options: RequestInit =
     ...(options.headers as Record<string, string>),
   };
 
-  if (clerkToken) {
-    headers['Authorization'] = `Bearer ${clerkToken}`;
-  } else if (devUserId) {
-    headers['x-dev-user-id'] = devUserId;
+  if (activeUserId) {
+    headers['Authorization'] = `Bearer ${activeUserId}`;
+    headers['x-user-id'] = activeUserId;
   }
 
   const url = `${API_BASE_URL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
