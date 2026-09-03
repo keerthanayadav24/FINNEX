@@ -84,7 +84,7 @@ export const requireAuth = async (req: Request, res: Response, next: NextFunctio
 
     next();
   } catch (error) {
-    console.error('Auth middleware failure:', error);
+    console.error('Auth middleware failure details:', error instanceof Error ? error.stack || error.message : error);
     res.status(500).json({
       success: false,
       error: {
