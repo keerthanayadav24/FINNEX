@@ -1,6 +1,6 @@
 # FINNEX — STAGE 0: FOUNDATION & ARCHITECTURE
 
-FINNEX is a Personal & Business Finance Management System built from scratch with a robust, extensible foundational architecture.
+FINNEX is a Personal Finance Management System built from scratch with a robust, extensible foundational architecture.
 
 ---
 
