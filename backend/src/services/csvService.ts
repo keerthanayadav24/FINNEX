@@ -56,7 +56,7 @@ export class CsvService {
     const parseResult = Papa.parse<Record<string, string>>(csvContent.trim(), {
       header: true,
       skipEmptyLines: true,
-      transformHeader: (header) => header.trim().toLowerCase(),
+      transformHeader: (header: string) => header.trim().toLowerCase(),
     });
 
     if (parseResult.errors.length > 0 && parseResult.data.length === 0) {
@@ -78,7 +78,7 @@ export class CsvService {
     let invalidCount = 0;
 
     // 3. Perform 100% server-side validation per row
-    parseResult.data.forEach((row, index) => {
+    parseResult.data.forEach((row: Record<string, string>, index: number) => {
       const rowNumber = index + 2; // Line 1 is header
       const errors: string[] = [];
 
@@ -129,7 +129,7 @@ export class CsvService {
         ? rawTags
             .replace(/"/g, '')
             .split(',')
-            .map((t) => t.trim().toLowerCase().replace(/^#/, ''))
+            .map((t: string) => t.trim().toLowerCase().replace(/^#/, ''))
             .filter(Boolean)
         : [];
 
